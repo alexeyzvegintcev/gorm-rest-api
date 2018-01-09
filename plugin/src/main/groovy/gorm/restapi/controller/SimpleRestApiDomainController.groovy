@@ -1,5 +1,6 @@
 package gorm.restapi.controller
 
+import gorm.tools.repository.errors.EntityNotFoundException
 import grails.artefact.Artefact
 import grails.gorm.transactions.Transactional
 
@@ -21,8 +22,9 @@ import static org.springframework.http.HttpStatus.*
  */
 @SuppressWarnings(['FactoryMethodName', 'NoDef'])
 @Artefact("Controller")
+@Deprecated
 //@Transactional(readOnly = true)
-class SimpleRestApiDomainController<T, ID extends Serializable> implements CoreControllerActions<T> {
+class SimpleRestApiDomainController<T, ID extends Serializable> implements CoreControllerActions<T>, RestControllerErrorHandling {
     static allowedMethods = [create: "POST", update: ["PUT", "PATCH"], delete: "DELETE"]
 
     static responseFormats = ['json']
@@ -52,6 +54,7 @@ class SimpleRestApiDomainController<T, ID extends Serializable> implements CoreC
      */
     @Transactional(readOnly = true)
     def index(Integer max) {
+        println("----------------------------------------")
         params.max = Math.min(max ?: 10, 100)
         respond listAllResources(params), model: [("${resourceName}Count".toString()): countResources()]
     }
@@ -61,9 +64,23 @@ class SimpleRestApiDomainController<T, ID extends Serializable> implements CoreC
      * @param id The id of the resource
      * @return The rendered resource or a 404 if it doesn't exist
      */
-    @Transactional(readOnly = true)
-    def show() {
-        respond queryForResource(params.id)
+    @Transactional
+    def get() {
+        respond queryForResource(params.id as Long)
+    }
+
+    /**
+     * Queries for a resource for the given id
+     *
+     * @param id The id
+     * @return The resource or null if it doesn't exist
+     */
+    T queryForResource(Serializable id) {
+        println "111111111111111111111111111111111111"
+        def q = resource.repo.get(id, null)
+        println q
+        println("222222222222222222222222222222222222222222222")
+         q
     }
 
     /**

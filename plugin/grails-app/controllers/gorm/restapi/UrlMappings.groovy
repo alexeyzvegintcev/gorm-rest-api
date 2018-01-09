@@ -24,10 +24,10 @@ class UrlMappings {
 
                     delete "/${cName}/$id(.$format)?"(controller: cName, action: "delete", namespace: 'api')
                     get "/${cName}(.$format)?"(controller: cName, action: "index", namespace: 'api')
-                    get "/${cName}/$id(.$format)?"(controller: cName, action: "show", namespace: 'api')
-                    post "/${cName}(.$format)?"(controller: cName, action: "create", namespace: 'api')
-                    put "/${cName}/$id(.$format)?"(controller: cName, action: "update", namespace: 'api')
-                    patch "/${cName}/$id(.$format)?"(controller: cName, action: "update", namespace: 'api')
+                    get "/${cName}/$id(.$format)?"(controller: cName, action: "get", namespace: 'api')
+                    post "/${cName}(.$format)?"(controller: cName, action: "post", namespace: 'api')
+                    put "/${cName}/$id(.$format)?"(controller: cName, action: "put", namespace: 'api')
+                    patch "/${cName}/$id(.$format)?"(controller: cName, action: "put", namespace: 'api')
                 }
             }
         }

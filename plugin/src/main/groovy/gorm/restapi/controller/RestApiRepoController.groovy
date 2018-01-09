@@ -22,7 +22,7 @@ import org.springframework.context.MessageSource
 // we can get some good ideas from how that plugin does things
 @SuppressWarnings(['CatchException', 'NoDef', 'ClosureAsLastMethodParameter', 'FactoryMethodName'])
 @Artefact("Controller")
-class RestApiRepoController<D> {
+class RestApiRepoController<D> implements RestControllerErrorHandling{
     static allowedMethods = [list  : ["GET", "POST"], create: "POST",
                              update: ["PUT", "PATCH"], delete: "DELETE"]
 
@@ -118,7 +118,8 @@ class RestApiRepoController<D> {
      * returns the list of domain obects
      */
     protected def listPost(body, requestParams) {
-        return getRepo().list(body, requestParams)
+
+        return getRepo().query(requestParams)
     }
 
     /**
