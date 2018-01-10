@@ -1,5 +1,7 @@
 package gorm.restapi.controller
 
+import gorm.tools.mango.api.MangoQueryApi
+import gorm.tools.repository.GormRepoEntity
 import gorm.tools.repository.api.RepositoryApi
 import grails.artefact.Artefact
 
@@ -22,20 +24,13 @@ import org.springframework.context.MessageSource
 // we can get some good ideas from how that plugin does things
 @SuppressWarnings(['CatchException', 'NoDef', 'ClosureAsLastMethodParameter', 'FactoryMethodName'])
 @Artefact("Controller")
-class RestApiRepoController<D> implements RestControllerErrorHandling{
+class RestApiRepoController<D extends GormRepoEntity> implements RestRepositoryApi<D> {
     static allowedMethods = [list  : ["GET", "POST"], create: "POST",
                              update: ["PUT", "PATCH"], delete: "DELETE"]
 
     static responseFormats = ['json']
     static namespace = 'api'
 
-    Class<D> resource
-    String resourceName
-    String resourceClassName
-    boolean readOnly
-
-    MessageSource messageSource
-    RepoExceptionSupport repoExceptionSupport
 
     //AppSetupService appSetupService
     GrailsApplication grailsApplication
@@ -51,12 +46,9 @@ class RestApiRepoController<D> implements RestControllerErrorHandling{
         resourceName = GrailsNameUtils.getPropertyName(resource)
     }
 
-    protected RepositoryApi<D> getRepository() {
-        return domainClass.repo
-    }
 
-    Class<D> getDomainClass() {
-        resource
+    MangoQueryApi getMangoQuery() {
+        getRepo().mangoQuery
     }
 
 //    @PostConstruct
@@ -73,16 +65,6 @@ class RestApiRepoController<D> implements RestControllerErrorHandling{
         "${propName}${suffix}"
     }
 
-    /**
-     * Lists all resources up to the given maximum
-     *
-     * @param max The maximum
-     * @return A list of resources
-     */
-    def index(Integer max) {
-        params.max = Math.min(max ?: 10, 100)
-        respond listAllResources(params), model: [("${resourceName}Count".toString()): countResources()]
-    }
 
 // ---------------------------------- ACTIONS ---------------------------------
 
@@ -118,204 +100,13 @@ class RestApiRepoController<D> implements RestControllerErrorHandling{
      * returns the list of domain obects
      */
     protected def listPost(body, requestParams) {
-
-        return getRepo().query(requestParams)
+        query(body as Map, requestParams as Map)
     }
 
     /**
      * returns the list of domain obects
      */
     protected def listGet(requestParams) {
-        return getRepo().list(requestParams)
-    }
-
-    //TODO This should be handled in the repo
-    protected def pagedList(dlist) {
-        def pageData = null//new Pager(params)
-        def fieldList
-        if (hasProperty('listFields')) {
-            fieldList = listFields
-        } else if (hasProperty('showFields')) {
-            fieldList = showFields
-        } else if (hasProperty('selectFields')) {
-            fieldList = selectFields
-        }
-        pageData.setupData(dlist, fieldList)
-        return pageData
-    }
-
-    /**
-     * the rest way to get a domain.
-     */
-    def get() {
-        def record = domainClass.get(params.id)
-        if (record) {
-            render BeanPathTools.buildMapFromPaths(record, selectFields) as JSON
-        } else {
-            response.status = 404
-        }
-    }
-
-    /**
-     * The core method to update or insert from json. once json is convertd it calls back out or
-     */
-    def create() {
-        try {
-            def p = BeanPathTools.flattenMap(request, request.JSON)
-            log.debug "saveOrUpdateJson json p: ${p}"
-            def result = createDomain(p)
-            return render(BeanPathTools.buildMapFromPaths(result.entity, selectFields) as JSON)
-        } catch (Exception e) {
-            log.error("create with error: $e.message", e)
-            def errResponse = errorMessageService.buildErrorResponse(e)
-            response.status = errResponse.code
-            render errResponse as JSON
-        }
-    }
-
-    /**
-     * The core method to update or insert from json. once json is convertd it calls back out or
-     */
-    def update() {
-        try {
-            def p = BeanPathTools.flattenMap(request, request.JSON)
-            log.debug "saveOrUpdateJson json p: ${p}"
-            def result = updateDomain(p)
-            return render(BeanPathTools.buildMapFromPaths(result.entity, selectFields) as JSON)
-        } catch (Exception e) {
-            log.error("update with error: $e.message", e)
-            def errResponse = errorMessageService.buildErrorResponse(e)
-            response.status = errResponse.code
-            render errResponse as JSON
-        }
-    }
-
-    def delete() {
-        log.debug("in deleteJson with ${params}")
-
-        try {
-            def p = request.JSON
-            def result = deleteDomain(p)
-            response.status = 204
-            render result as JSON
-        } catch (ValidationException e) {
-            log.error("saveJson with error", e)
-            response.status = 422
-            def responseJson = [
-                "code"       : 422,
-                "status"     : "error",
-                "message"    : errorMessageService.buildMsg(e.messageMap),
-                "messageCode": e.messageMap.code
-            ]
-            render responseJson as JSON
-        } catch (Exception e) {
-            log.error("saveJson with error", e)
-            response.status = 400
-            def responseJson = [
-                "code"   : 400,
-                "status" : "error",
-                "message": e.message,
-                "error"  : e.message
-            ]
-            render responseJson as JSON
-        }
-    }
-
-    /**
-     * Called from the saves and saveOrUpdateJson,
-     * providing a place to override functionality
-     */
-    protected def insertDomain(p) {
-        log.info("saveDomain(${p})")
-        return getRepo().insert(p)
-    }
-
-    protected def updateDomain(p, opts = null) {
-        params.remove('companyId') //TODO XXX - why is it here for every controllers ?
-        log.debug "updateDomain with ${p}"
-        def res = getRepo().update(p)
-        if (opts?.flush) //TODO call flush
-        return res
-    }
-
-    //
-    protected def deleteDomain(p) {
-        return getRepo().remove(p)
-    }
-
-    //Build human readable error message
-    protected Map buildErrorResponse(e) {
-        errorMessageService.buildErrorResponse(e)
-    }
-
-    //this should be able to be done easier than this
-    protected errorBuilder(messageCode, args, defmsg, entity, meta) {
-        def message = g.message('code': messageCode, 'args': args, 'default': defmsg)
-        flash.message = null
-        def errs = []
-
-        if (entity) {
-            errs = buildError(entity, errs)
-        }
-        if (meta) {
-            meta.values()?.each { obj ->
-                errs = buildError(obj, errs)
-            }
-        }
-        //FIXME implement new way
-        return [
-            "code"       : 422,
-            "status"     : "error",
-            "message"    : message,
-            "messageCode": messageCode,
-            "id"         : entity ? "${entity.id}" : "",
-            'errors'     : errs
-        ]
-
-    }
-
-    def buildError(obj, errs) {
-        eachError([bean: obj], {
-            errs << [(it.field): [object          : it.objectName, field: it.field, message: g.message(error: it).toString(),
-                                  'rejected-value': StringEscapeUtils.escapeXml(it.rejectedValue?.toString())]]
-        })
-        return errs
-    }
-
-    protected Map getExternalConfig() {
-        ConfigObject controllerConfig = grailsApplication.setupConfig.screens."$controllerName"
-        return controllerConfig
-    }
-
-    protected List<String> getDefaultShowFields() { return [] }
-
-    protected def getSelectFields() {
-        return externalConfig.show.fields ?: defaultShowFields
-    }
-
-    protected List<String> getDefaultListFields() { return [] }
-
-    protected def getListFields() {
-        return externalConfig.list.fields ?: defaultListFields
-    }
-
-    protected Map getDefaultGridOptions() {
-        return [:]
-    }
-
-    protected Map getGridOptions() {
-        def options = externalConfig.list.gridz
-        if (!options) {
-            return defaultGridOptions
-        }
-        return appSetupService.getValue(options)
-    }
-
-    /**
-     * Renders js file with grid configuration.
-     */
-    def gridOptions() {
-        String gridOptsJson = (gridOptions as JSON).toString()
-        render(contentType: "text/javascript", text: "window.${controllerName}GridOptions = Object.freeze($gridOptsJson);")
+        query(requestParams as Map)
     }
 }

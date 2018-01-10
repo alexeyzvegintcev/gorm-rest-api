@@ -16,7 +16,7 @@ import org.springframework.core.GenericTypeResolver
 import static org.springframework.http.HttpStatus.*
 
 @CompileStatic
-trait RestRepositoryApi<D extends GormRepoEntity> implements RestResponder, ServletAttributes{
+trait RestRepositoryApi<D extends GormRepoEntity> implements RestResponder, ServletAttributes, RestControllerErrorHandling, MangoControllerApi {
 
     /**
      * The java class for the Gorm domain (persistence entity). will generally get set in constructor or using the generic as

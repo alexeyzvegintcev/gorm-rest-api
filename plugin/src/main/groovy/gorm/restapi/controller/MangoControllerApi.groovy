@@ -12,18 +12,18 @@ import org.springframework.beans.factory.annotation.Qualifier
  */
 trait MangoControllerApi {
 
-    abstract Class getResource()
+    abstract Class getEntityClass()
 
     @Autowired
     @Qualifier("mango")
     MangoQueryApi mangoQuery
 
-    DetachedCriteria buildCriteria(Map params = [:], Closure closure = null) {
-        getMangoQuery().buildCriteria(getResource(), params, closure)
+    DetachedCriteria buildCriteria(Map criteriaParams=[:], Map params = [:], Closure closure = null) {
+        getMangoQuery().buildCriteria(getEntityClass(), criteriaParams + params, closure)
     }
 
-    List query(Map params = [:], Closure closure = null) {
-        getMangoQuery().query(getResource(), params, closure)
+    List query(Map criteriaParams=[:], Map params = [:], Closure closure = null) {
+        getMangoQuery().query(getEntityClass(), criteriaParams + params, closure)
     }
 
 }

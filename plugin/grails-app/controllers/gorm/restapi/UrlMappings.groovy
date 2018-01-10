@@ -10,7 +10,7 @@ class UrlMappings {
             println "controler $controller.fullName"
             String cName = controller.logicalPropertyName
             String namespace = GrailsClassUtils.getStaticPropertyValue(controller.clazz, 'namespace')
-            println "controler $cName with namespace $namespace"
+            println "controller $cName with namespace $namespace"
 
             if (namespace == 'api') {
                 group("/api") {

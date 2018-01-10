@@ -16,7 +16,6 @@
 package gorm.restapi
 
 import gorm.restapi.controller.RestApiRepoController
-import gorm.restapi.controller.SimpleRestApiDomainController
 import org.codehaus.groovy.transform.GroovyASTTransformationClass
 
 import java.lang.annotation.ElementType
