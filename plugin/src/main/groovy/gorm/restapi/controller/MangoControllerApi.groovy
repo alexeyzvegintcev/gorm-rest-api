@@ -1,9 +1,8 @@
 package gorm.restapi.controller
 
-import gorm.tools.mango.api.MangoQueryApi
+import gorm.tools.repository.GormRepo
+import gorm.tools.repository.api.RepositoryApi
 import grails.gorm.DetachedCriteria
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
 
 /**
  *  Adds controller methods for list
@@ -12,18 +11,14 @@ import org.springframework.beans.factory.annotation.Qualifier
  */
 trait MangoControllerApi {
 
-    abstract Class getEntityClass()
-
-    @Autowired
-    @Qualifier("mango")
-    MangoQueryApi mangoQuery
+    abstract RepositoryApi getRepo()
 
     DetachedCriteria buildCriteria(Map criteriaParams=[:], Map params = [:], Closure closure = null) {
-        getMangoQuery().buildCriteria(getEntityClass(), criteriaParams + params, closure)
+        getRepo().buildCriteria( criteriaParams + params, closure)
     }
 
     List query(Map criteriaParams=[:], Map params = [:], Closure closure = null) {
-        getMangoQuery().query(getEntityClass(), criteriaParams + params, closure)
+        getRepo().query(criteriaParams + params, closure)
     }
 
 }

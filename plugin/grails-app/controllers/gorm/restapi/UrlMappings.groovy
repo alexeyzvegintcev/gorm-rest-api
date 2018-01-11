@@ -25,6 +25,8 @@ class UrlMappings {
                     delete "/${cName}/$id(.$format)?"(controller: cName, action: "delete", namespace: 'api')
                     get "/${cName}(.$format)?"(controller: cName, action: "index", namespace: 'api')
                     get "/${cName}/$id(.$format)?"(controller: cName, action: "get", namespace: 'api')
+                    get "/${cName}/list(.$format)?"(controller: cName, action: "listGet", namespace: 'api')
+                    post "/${cName}/list(.$format)?"(controller: cName, action: "listPost", namespace: 'api')
                     post "/${cName}(.$format)?"(controller: cName, action: "post", namespace: 'api')
                     put "/${cName}/$id(.$format)?"(controller: cName, action: "put", namespace: 'api')
                     patch "/${cName}/$id(.$format)?"(controller: cName, action: "put", namespace: 'api')

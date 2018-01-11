@@ -38,10 +38,8 @@ trait RestRepositoryApi<D extends GormRepoEntity> implements RestResponder, Serv
      * Gets the repository for the entityClass
      * @return The repository
      */
-    //@CompileDynamic
     RepositoryApi<D> getRepo() {
         (RepositoryApi<D>) InvokerHelper.invokeStaticMethod(getEntityClass(), 'getRepo', null)
-        //getEntityClass().getRepo()
     }
 
     /**

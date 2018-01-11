@@ -1,18 +1,11 @@
 package gorm.restapi.controller
 
-import gorm.tools.mango.api.MangoQueryApi
 import gorm.tools.repository.GormRepoEntity
-import gorm.tools.repository.api.RepositoryApi
 import grails.artefact.Artefact
-
-//import gorm.tools.Pager
 import grails.converters.JSON
 import grails.core.GrailsApplication
-import gorm.tools.repository.errors.RepoExceptionSupport
 import grails.util.GrailsNameUtils
-import grails.validation.ValidationException
-import org.apache.commons.lang.StringEscapeUtils
-import org.springframework.context.MessageSource
+import org.grails.web.json.JSONElement
 
 /**
  * Credits: took rally.BaseDomainController with core concepts from grails RestfulConroller
@@ -31,82 +24,53 @@ class RestApiRepoController<D extends GormRepoEntity> implements RestRepositoryA
     static responseFormats = ['json']
     static namespace = 'api'
 
+    Class<D> entityClass
+    String entityName
+    String entityClassName
+    boolean readOnly
+
 
     //AppSetupService appSetupService
     GrailsApplication grailsApplication
 
-    RestApiRepoController(Class<D> resource) {
-        this(resource, false)
+    RestApiRepoController(Class<D> entityClass) {
+        this(entityClass, false)
     }
 
-    RestApiRepoController(Class<D> resource, boolean readOnly) {
-        this.resource = resource
+    RestApiRepoController(Class<D> entityClass, boolean readOnly) {
+        this.entityClass = entityClass
         this.readOnly = readOnly
-        resourceClassName = resource.simpleName
-        resourceName = GrailsNameUtils.getPropertyName(resource)
+        entityName = entityClass.simpleName
+        entityClassName = GrailsNameUtils.getPropertyName(entityClass)
     }
-
-
-    MangoQueryApi getMangoQuery() {
-        getRepo().mangoQuery
-    }
-
-//    @PostConstruct
-//    protected void init(){
-//        //println "init called and ga is ${grailsApplication?'initialized':'null'}"
-//    }
 
     protected String getDomainInstanceName() {
         def suffix = grailsApplication.config?.grails?.scaffolding?.templates?.domainSuffix
         if (!suffix) {
             suffix = ''
         }
-        def propName = GrailsNameUtils.getPropertyNameRepresentation(domainClass)
+        def propName = GrailsNameUtils.getPropertyNameRepresentation(entityClass)
         "${propName}${suffix}"
     }
 
 
 // ---------------------------------- ACTIONS ---------------------------------
 
-    // GET /api/resource
-    //
-    def list() {
-
-        log.trace "list invoked for ${params.pluralizedResourceName} - request_id=${request.request_id}"
-        try {
-            //cache headers
-            def requestParams = params
-            def logger = log
-
-            def result
-
-            if (request.method == "POST") {
-                //request.body will possibly have the criteria
-                result = listPost(request.body, requestParams)
-            } else if (request.method == "GET") {
-                result = listGet(requestParams)
-            }
-
-            respond result
-
-        }
-        catch (e) {
-            logMessageError(e)
-            renderErrorResponse(e)
-        }
+    /**
+     * request type is handled in urlMapping
+     *
+     * returns the list of domain objects
+     */
+    def listPost() {
+        respond query((request.JSON?:[:]) as Map, params)
     }
 
     /**
-     * returns the list of domain obects
+     * request type is handled in urlMapping
+     *
+     * returns the list of domain objects
      */
-    protected def listPost(body, requestParams) {
-        query(body as Map, requestParams as Map)
-    }
-
-    /**
-     * returns the list of domain obects
-     */
-    protected def listGet(requestParams) {
-        query(requestParams as Map)
+    def listGet() {
+        respond query(params)
     }
 }
