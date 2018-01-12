@@ -2,9 +2,12 @@ package gorm.restapi.controller
 
 import gorm.tools.repository.GormRepoEntity
 import gorm.tools.repository.api.RepositoryApi
+import gorm.tools.repository.errors.EntityNotFoundException
+import gorm.tools.repository.errors.EntityValidationException
 import grails.artefact.controller.RestResponder
 import grails.artefact.controller.support.ResponseRenderer
 import grails.databinding.SimpleMapDataBindingSource
+import grails.validation.ValidationException
 import grails.web.Action
 import grails.web.api.ServletAttributes
 import grails.web.databinding.DataBindingUtils
@@ -16,7 +19,7 @@ import org.springframework.core.GenericTypeResolver
 import static org.springframework.http.HttpStatus.*
 
 @CompileStatic
-trait RestRepositoryApi<D extends GormRepoEntity> implements RestResponder, ServletAttributes, RestControllerErrorHandling, MangoControllerApi {
+trait RestRepositoryApi<D extends GormRepoEntity> implements RestResponder, ServletAttributes, MangoControllerApi {
 
     /**
      * The java class for the Gorm domain (persistence entity). will generally get set in constructor or using the generic as
@@ -58,7 +61,9 @@ trait RestRepositoryApi<D extends GormRepoEntity> implements RestResponder, Serv
      */
     @Action
     def put() {
-        D instance = getRepo().update(getDataMap())
+        Map data = [id: params.id]
+        data.putAll(getDataMap()) // getDataMap doesnt contains id because it passed in params
+        D instance = getRepo().update(data)
         respond instance, [status: OK] //200
     }
 

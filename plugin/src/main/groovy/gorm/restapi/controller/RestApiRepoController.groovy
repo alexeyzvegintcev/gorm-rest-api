@@ -2,10 +2,9 @@ package gorm.restapi.controller
 
 import gorm.tools.repository.GormRepoEntity
 import grails.artefact.Artefact
-import grails.converters.JSON
 import grails.core.GrailsApplication
 import grails.util.GrailsNameUtils
-import org.grails.web.json.JSONElement
+
 
 /**
  * Credits: took rally.BaseDomainController with core concepts from grails RestfulConroller
@@ -17,7 +16,7 @@ import org.grails.web.json.JSONElement
 // we can get some good ideas from how that plugin does things
 @SuppressWarnings(['CatchException', 'NoDef', 'ClosureAsLastMethodParameter', 'FactoryMethodName'])
 @Artefact("Controller")
-class RestApiRepoController<D extends GormRepoEntity> implements RestRepositoryApi<D> {
+class RestApiRepoController<D extends GormRepoEntity> implements RestRepositoryApi<D>, RestControllerErrorHandling {
     static allowedMethods = [list  : ["GET", "POST"], create: "POST",
                              update: ["PUT", "PATCH"], delete: "DELETE"]
 
@@ -55,6 +54,10 @@ class RestApiRepoController<D extends GormRepoEntity> implements RestRepositoryA
 
 
 // ---------------------------------- ACTIONS ---------------------------------
+
+    def index(){
+        listGet()
+    }
 
     /**
      * request type is handled in urlMapping
