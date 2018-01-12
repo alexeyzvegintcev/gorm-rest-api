@@ -2,6 +2,7 @@ package gorm.restapi.testing
 
 import geb.spock.GebSpec
 import grails.web.http.HttpHeaders
+import org.junit.Test
 
 import static grails.web.http.HttpHeaders.CONTENT_TYPE
 import static org.springframework.http.HttpStatus.*
@@ -11,25 +12,13 @@ import static org.springframework.http.HttpStatus.*
 @SuppressWarnings(['NoDef', 'AbstractClassWithoutAbstractMethod'])
 abstract class RestApiFuncSpec extends GebSpec implements RestApiTestTrait {
     boolean vndHeaderOnError = false
-    // RestBuilder getRestBuilder() {
-    //     new RestBuilder()
-    // }
 
-    // String getResourcePath() {
-    //     "${baseUrl}/api/project"
-    // }
-
-    // Map getValidJson() {[ name: "project", code: "x123"]}
-
-    // Map getUpdateJson() { [name: "project Update", code: "x123u"]}
-
-    // String getInvalidJson() {'''{
-    //     "name": null
-    // }'''}
-
+    // TODO: add ability to pass input and output data to be able to test overidden repos
     abstract Map getInvalidData()
     abstract Map getInsertData()
     abstract Map getUpdateData()
+
+    //TODO: figured out how to override test cases
 
     void test_get_index() {
         given:
