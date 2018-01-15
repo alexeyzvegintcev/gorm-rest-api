@@ -5,7 +5,6 @@ import grails.artefact.Artefact
 import grails.core.GrailsApplication
 import grails.util.GrailsNameUtils
 
-
 /**
  * Credits: took rally.BaseDomainController with core concepts from grails RestfulConroller
  * Some of this is, especailly the cache part is lifted from the older grails2 restful-api plugin
@@ -16,7 +15,7 @@ import grails.util.GrailsNameUtils
 // we can get some good ideas from how that plugin does things
 @SuppressWarnings(['CatchException', 'NoDef', 'ClosureAsLastMethodParameter', 'FactoryMethodName'])
 @Artefact("Controller")
-class RestApiRepoController<D extends GormRepoEntity> implements RestRepositoryApi<D>, RestControllerErrorHandling {
+class RestApiRepoController<D extends GormRepoEntity> implements RestRepositoryApi<D> {
     static allowedMethods = [list  : ["GET", "POST"], create: "POST",
                              update: ["PUT", "PATCH"], delete: "DELETE"]
 

@@ -7,7 +7,6 @@ import gorm.tools.repository.errors.EntityValidationException
 import grails.artefact.controller.RestResponder
 import grails.artefact.controller.support.ResponseRenderer
 import grails.databinding.SimpleMapDataBindingSource
-import grails.validation.ValidationException
 import grails.web.Action
 import grails.web.api.ServletAttributes
 import grails.web.databinding.DataBindingUtils
@@ -19,7 +18,7 @@ import org.springframework.core.GenericTypeResolver
 import static org.springframework.http.HttpStatus.*
 
 @CompileStatic
-trait RestRepositoryApi<D extends GormRepoEntity> implements RestResponder, ServletAttributes, MangoControllerApi {
+trait RestRepositoryApi<D extends GormRepoEntity> implements RestResponder, ServletAttributes, MangoControllerApi, RestControllerErrorHandling {
 
     /**
      * The java class for the Gorm domain (persistence entity). will generally get set in constructor or using the generic as
@@ -51,7 +50,12 @@ trait RestRepositoryApi<D extends GormRepoEntity> implements RestResponder, Serv
      */
     @Action
     def post() {
-        D instance = getRepo().create(getDataMap())
+        D instance
+        try {
+            instance = getRepo().create(getDataMap())
+        } catch (RuntimeException e){
+            handleException(e)
+        }
         respond instance, [status: CREATED] //201
     }
 
@@ -63,7 +67,12 @@ trait RestRepositoryApi<D extends GormRepoEntity> implements RestResponder, Serv
     def put() {
         Map data = [id: params.id]
         data.putAll(getDataMap()) // getDataMap doesnt contains id because it passed in params
-        D instance = getRepo().update(data)
+        D instance
+        try {
+            instance = getRepo().update(data)
+        } catch (RuntimeException e){
+            handleException(e)
+        }
         respond instance, [status: OK] //200
     }
 
@@ -73,7 +82,11 @@ trait RestRepositoryApi<D extends GormRepoEntity> implements RestResponder, Serv
      */
     @Action
     def delete() {
-        getRepo().removeById((Serializable)params.id)
+        try {
+            getRepo().removeById((Serializable) params.id)
+        } catch (RuntimeException e){
+            handleException(e)
+        }
         callRender(status: NO_CONTENT) //204
     }
 
@@ -83,7 +96,11 @@ trait RestRepositoryApi<D extends GormRepoEntity> implements RestResponder, Serv
      */
     @Action
     def get() {
-        respond getRepo().get(params)
+        try {
+            respond getRepo().get(params)
+        } catch (RuntimeException e){
+            handleException(e)
+        }
     }
 
     /**
