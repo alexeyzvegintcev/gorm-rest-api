@@ -2,8 +2,6 @@ package gorm.restapi.controller
 
 import gorm.tools.repository.GormRepoEntity
 import gorm.tools.repository.api.RepositoryApi
-import gorm.tools.repository.errors.EntityNotFoundException
-import gorm.tools.repository.errors.EntityValidationException
 import grails.artefact.controller.RestResponder
 import grails.artefact.controller.support.ResponseRenderer
 import grails.databinding.SimpleMapDataBindingSource
@@ -50,13 +48,11 @@ trait RestRepositoryApi<D extends GormRepoEntity> implements RestResponder, Serv
      */
     @Action
     def post() {
-        D instance
-        try {
-            instance = getRepo().create(getDataMap())
-        } catch (RuntimeException e){
-            handleException(e)
-        }
-        respond instance, [status: CREATED] //201
+
+            D instance = getRepo().create(getDataMap())
+            respond instance, [status: CREATED] //201
+
+
     }
 
     /**
@@ -65,15 +61,13 @@ trait RestRepositoryApi<D extends GormRepoEntity> implements RestResponder, Serv
      */
     @Action
     def put() {
-        Map data = [id: params.id]
-        data.putAll(getDataMap()) // getDataMap doesnt contains id because it passed in params
-        D instance
-        try {
-            instance = getRepo().update(data)
-        } catch (RuntimeException e){
-            handleException(e)
-        }
-        respond instance, [status: OK] //200
+
+
+            Map data = [id: params.id]
+            data.putAll(getDataMap()) // getDataMap doesnt contains id because it passed in params
+            D instance = getRepo().update(data)
+            respond instance, [status: OK] //200
+
     }
 
     /**
@@ -82,12 +76,10 @@ trait RestRepositoryApi<D extends GormRepoEntity> implements RestResponder, Serv
      */
     @Action
     def delete() {
-        try {
+
             getRepo().removeById((Serializable) params.id)
-        } catch (RuntimeException e){
-            handleException(e)
-        }
-        callRender(status: NO_CONTENT) //204
+            callRender(status: NO_CONTENT) //204
+
     }
 
     /**
@@ -96,11 +88,8 @@ trait RestRepositoryApi<D extends GormRepoEntity> implements RestResponder, Serv
      */
     @Action
     def get() {
-        try {
             respond getRepo().get(params)
-        } catch (RuntimeException e){
-            handleException(e)
-        }
+
     }
 
     /**
