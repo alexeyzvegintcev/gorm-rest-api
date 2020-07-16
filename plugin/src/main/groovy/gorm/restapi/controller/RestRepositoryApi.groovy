@@ -2,6 +2,7 @@ package gorm.restapi.controller
 
 import gorm.tools.repository.GormRepoEntity
 import gorm.tools.repository.api.RepositoryApi
+import org.grails.datastore.gorm.GormEntity
 import grails.artefact.controller.RestResponder
 import grails.artefact.controller.support.ResponseRenderer
 import grails.databinding.SimpleMapDataBindingSource
@@ -52,7 +53,7 @@ trait RestRepositoryApi<D extends GormRepoEntity> implements RestResponder, Serv
     @Action
     def post() {
         try {
-            D instance = getRepo().create(getDataMap())
+            GormEntity instance = getRepo().create(getDataMap())
             respond instance, [status: CREATED] //201
         } catch (RuntimeException e){
             handleException(e)
@@ -68,7 +69,7 @@ trait RestRepositoryApi<D extends GormRepoEntity> implements RestResponder, Serv
         Map data = [id: params.id]
         data.putAll(getDataMap()) // getDataMap doesnt contains id because it passed in params
         try {
-            D instance = getRepo().update(data)
+            GormEntity instance = getRepo().update(data)
             respond instance, [status: OK] //200
         } catch (RuntimeException e){
             handleException(e)
